@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - CRM Dalia</title>
+  <style>
+    /* Estilos básicos para a tela de login */
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f9;
+    }
+    .login-container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .login-container h2 {
+      margin-bottom: 20px;
+    }
+    .login-container input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .login-container button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .login-container button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Nome de usuário" required>
+      <input type="password" id="password" placeholder="Senha" required>
+      <button type="submit">Entrar</button>
+    </form>
+    <button id="createAdminBtn" style="display: none;">Criar Administrador</button>
+  </div>
+  <script>
+    // Verifica se há um administrador e exibe o botão de criação se necessário
+    fetch('/api/check-admin')
+      .then(response => response.json())
+      .then(data => {
+        if (!data.hasAdmin) {
+          document.getElementById('createAdminBtn').style.display = 'block';
+        }
+      });
+
+    // Lógica para o formulário de login
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      // Envia os dados de login para o servidor
+      fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Login bem-sucedido!');
+          // Redireciona para a página principal do CRM
+          window.location.href = '/dashboard';
+        } else {
+          alert('Falha no login: ' + data.message);
+        }
+      });
+    });
+
+    // Lógica para criar um novo administrador
+    document.getElementById('createAdminBtn').addEventListener('click', function() {
+      const username = prompt('Digite o nome de usuário para o novo administrador:');
+      const password = prompt('Digite a senha para o novo administrador:');
+      if (username && password) {
+        fetch('/api/create-admin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Administrador criado com sucesso!');
+            // Redireciona para a dashboard após a criação do administrador
+            window.location.href = '/dashboard';
+          } else {
+            alert('Erro ao criar administrador: ' + data.message);
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
